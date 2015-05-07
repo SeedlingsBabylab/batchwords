@@ -1,0 +1,7 @@
+*.xml
+*.pyc
+data/
+*.o
+*.a
+*.so
+.idea/
