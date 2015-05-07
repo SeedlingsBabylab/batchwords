@@ -1,6 +1,7 @@
 from Tkinter import *
 import tkFileDialog
 import os
+import csv
 
 class MainWindow:
 
@@ -43,7 +44,7 @@ class MainWindow:
 
 
         self.file_listbox = Listbox(self.main_frame,
-                                    width=22,
+                                    width=34,
                                     height=20,
                                     selectmode=MULTIPLE)
 
@@ -70,10 +71,20 @@ class MainWindow:
 
 
         self.file_list_clear_button = Button(self.main_frame,
-                                             text="Clear",
+                                             text="Clear All",
                                              command=self.directory_clear)
 
         self.file_list_clear_button.grid(row=4, column=0)
+
+
+        self.file_selected_clear_button = Button(self.main_frame,
+                                                 text="Clear Selected",
+                                                 command=self.clear_selected)
+
+        self.file_selected_clear_button.grid(row=5, column=0)
+
+
+        self.files_selected_label = Label(self.main_frame, text="files selected", fg="green")
 
 
         self.wordlist_label = Label(self.main_frame, text="Word List")
@@ -126,14 +137,24 @@ class MainWindow:
 
         self.file_listbox.delete(0, END)
 
+        self.files_selected_label.grid_remove()
+
     def select_files(self):
+
+        #TODO make sure you can only select a file once (clear then reselect might re-add)
 
         print self.file_listbox.curselection()
 
         for selection in self.file_listbox.curselection():
             self.selected_csv_files.append(self.all_csv_files[selection])
 
+        self.files_selected_label.grid(row=6, column=0)
         print self.selected_csv_files
+
+    def clear_selected(self):
+
+        self.file_listbox.select_clear(0, END)
+        self.files_selected_label.grid_remove()
 
     def load_wordlist(self):
 
@@ -156,15 +177,79 @@ class MainWindow:
 
     def export_csv(self):
 
+        if (not self.word_list) or\
+                (not self.word_list_file) or\
+                (not self.all_csv_files) or\
+                (not self.csv_directory):
+            raise Exception("you need to load all the files first")
+
+        results = []
+        for file in self.selected_csv_files:
+            results.append(self.pull_out_matches(file, self.word_list))
+
         self.export_file = tkFileDialog.asksaveasfilename()
 
         with open(self.export_file, "w") as file:
+            writer = csv.writer(file)
+            writer.writerow(["Child_Visit",      # write the header
+                            "word",
+                            "utterance_type",
+                            "object_present",
+                            "speaker",
+                            "basic_level",
+                            "audio_video"])
 
-            file.write("Child_Visit\tword\tutterance_type\tobject_present\tspeaker\tbasic_level\taudio_video\n")
+            print results
 
+            for matches in results:
+                for entry in matches[1]:
 
-        print "hello"
+                    if (matches[0][1] is "audio"):  # if the file was an audio csv, pull out
+                                                    # the data in the appropriate way and write it
+                                                    # to the export csv
+                        writer.writerow([matches[0][0],
+                                         entry[1],
+                                         entry[2],
+                                         entry[3],
+                                         entry[4],
+                                         entry[6],
+                                         matches[0][1]])
 
+                    else:   # file was video
+                        writer.writerow([matches[0][0], # child_visit
+                                         matches[1][0],  # word
+                                         ])
+
+    def pull_out_matches(self, scan_file, wordlist):
+        """
+
+        :param scan_file: file to be scanned
+        :param word: word to be pulled out
+        :return: list of strings representing entries from the scanned file
+        """
+
+        matches = []
+
+        file_type = scan_file.find("audio")
+
+        if file_type is -1:
+            file_type = "video"
+        else:
+            file_type = "audio"
+
+        meta_info = (scan_file[0:5], file_type)  #(child_visit, audio/video)
+
+        with open(os.path.join(self.csv_directory, scan_file), "rU") as file:
+            reader = csv.reader(file)
+
+            for line in reader:
+
+                if line[6].strip() in wordlist:
+                    matches.append(line)
+
+        print "meta_info: " + str(meta_info)
+        print "matches: " + str(matches)
+        return (meta_info, matches)
 
 
 if __name__ == "__main__":
