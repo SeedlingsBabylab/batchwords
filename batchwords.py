@@ -11,7 +11,9 @@ class MainWindow:
         self.selected_csv_files = []    # integers representing the index of files chosen (from self.all_csv_files)
 
         self.word_list_file = None
-        self.word_list = None
+        self.word_list = []
+
+        self.export_file = None
 
         self.root = master
         self.root.title("Batch Words")
@@ -91,6 +93,14 @@ class MainWindow:
         self.load_wordlist_button.grid(row=2, column=1)
 
 
+        self.clear_wordlist_button = Button(self.main_frame,
+                                            text="Clear",
+                                            command=self.clear_wordlist)
+
+        self.clear_wordlist_button.grid(row=3, column=1)
+
+
+
         self.export_csv = Button(self.main_frame, text="Export", command=self.export_csv)
         self.export_csv.grid(row=2, column=3, columnspan=2)
 
@@ -129,11 +139,32 @@ class MainWindow:
 
         self.word_list_file = tkFileDialog.askopenfilename()
 
+        with open(self.word_list_file, "rU") as file:
+            for line in file:
+                self.word_list.append(line.strip())
         print self.word_list_file
+        print self.word_list
+
+        for i, word in enumerate(self.word_list):
+            self.wordlist_box.insert(i, word)
+
+    def clear_wordlist(self):
+
+        self.word_list_file = None
+        self.word_list = []
+        self.wordlist_box.delete(0, END)
 
     def export_csv(self):
 
+        self.export_file = tkFileDialog.asksaveasfilename()
+
+        with open(self.export_file, "w") as file:
+
+            file.write("Child_Visit\tword\tutterance_type\tobject_present\tspeaker\tbasic_level\taudio_video\n")
+
+
         print "hello"
+
 
 
 if __name__ == "__main__":
