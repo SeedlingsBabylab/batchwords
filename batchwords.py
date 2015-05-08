@@ -34,8 +34,14 @@ class MainWindow:
                                                  variable=self.av_int_var,
                                                  value=2)
 
+        self.both_selected_button = Radiobutton(self.main_frame,
+                                                text="both",
+                                                variable=self.av_int_var,
+                                                value=3)
+
         self.video_selected_button.grid(row=3, column=3)
         self.audio_selected_button.grid(row=3, column=4)
+        self.both_selected_button.grid(row=3, column=5)
 
 
         self.file_listbox_label = Label(self.main_frame, text="Files")
@@ -201,24 +207,35 @@ class MainWindow:
 
             print results
 
+            type = self.av_int_var.get()
+
             for matches in results:
+
                 for entry in matches[1]:
 
                     if (matches[0][1] is "audio"):  # if the file was an audio csv, pull out
-                                                    # the data in the appropriate way and write it
-                                                    # to the export csv
-                        writer.writerow([matches[0][0],
-                                         entry[1],
-                                         entry[2],
-                                         entry[3],
-                                         entry[4],
-                                         entry[6],
-                                         matches[0][1]])
+                        if type is 1:               # the data in the appropriate way and write it
+                            continue                # to the export csv
+
+                        writer.writerow([matches[0][0],     # child_visit
+                                         entry[1],          # word
+                                         entry[2],          # utterance_type
+                                         entry[3],          # object_present
+                                         entry[4],          # speaker
+                                         entry[6],          # basic_level
+                                         matches[0][1]])    # audio_video
 
                     else:   # file was video
-                        writer.writerow([matches[0][0], # child_visit
-                                         matches[1][0],  # word
-                                         ])
+
+                        if type is 2:
+                            continue
+                        writer.writerow([matches[0][0],     # child_visit
+                                         entry[3],          # word
+                                         entry[4],          # utterance_type
+                                         entry[5],          # object_present
+                                         entry[6],          # speaker
+                                         entry[7],          # basic level
+                                         matches[0][1]])    # audio_video
 
     def pull_out_matches(self, scan_file, wordlist):
         """
@@ -244,8 +261,12 @@ class MainWindow:
 
             for line in reader:
 
-                if line[6].strip() in wordlist:
-                    matches.append(line)
+                if file_type is "audio":
+                    if line[6].strip() in wordlist:
+                        matches.append(line)
+                elif file_type is "video":
+                    if line[7].strip() in wordlist:
+                        matches.append(line)
 
         print "meta_info: " + str(meta_info)
         print "matches: " + str(matches)
