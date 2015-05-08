@@ -1,6 +1,6 @@
 *.xml
 *.pyc
-data/
+#data/
 *.o
 *.a
 *.so
