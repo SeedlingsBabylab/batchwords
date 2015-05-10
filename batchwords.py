@@ -138,8 +138,8 @@ class MainWindow:
 
     def directory_clear(self):
 
-        self.all_csv_files = []
-        self.selected_csv_files = []
+        del self.all_csv_files[:]
+        del self.selected_csv_files[:]
 
         self.file_listbox.delete(0, END)
 
@@ -147,20 +147,22 @@ class MainWindow:
 
     def select_files(self):
 
-        #TODO make sure you can only select a file once (clear then reselect might re-add)
-
         print self.file_listbox.curselection()
 
         for selection in self.file_listbox.curselection():
-            self.selected_csv_files.append(self.all_csv_files[selection])
+            print self.all_csv_files[selection]
+            if self.all_csv_files[selection] not in self.selected_csv_files:
+                self.selected_csv_files.append(self.all_csv_files[selection])
 
-        self.files_selected_label.grid(row=6, column=0)
+        if len(self.selected_csv_files) > 0:
+            self.files_selected_label.grid(row=6, column=0)
         print self.selected_csv_files
 
     def clear_selected(self):
 
         self.file_listbox.select_clear(0, END)
         self.files_selected_label.grid_remove()
+        del self.selected_csv_files[:]
 
     def load_wordlist(self):
 
