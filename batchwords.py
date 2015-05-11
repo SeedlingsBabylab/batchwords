@@ -38,14 +38,16 @@ class MainWindow:
                                                 text="both",
                                                 variable=self.av_int_var,
                                                 value=3)
+        self.both_selected_button.select()  # both by default
 
-        self.video_selected_button.grid(row=3, column=3)
-        self.audio_selected_button.grid(row=3, column=4)
-        self.both_selected_button.grid(row=3, column=5)
+        self.video_selected_button.grid(row=3, column=4)
+        self.audio_selected_button.grid(row=3, column=5)
+        self.both_selected_button.grid(row=3, column=6)
 
 
+        # All the file listbox variables and GUI elements
         self.file_listbox_label = Label(self.main_frame, text="Files")
-        self.file_listbox_label.grid(row=0, column=0)
+        self.file_listbox_label.grid(row=0, column=1)
 
 
 
@@ -54,7 +56,7 @@ class MainWindow:
                                     height=20,
                                     selectmode=MULTIPLE)
 
-        self.file_listbox.grid(row=1, column=0, padx=10)
+        self.file_listbox.grid(row=1, column=1, padx=10)
 
 
 
@@ -63,7 +65,7 @@ class MainWindow:
                                             text="Load",
                                             command=self.directory_load)
 
-        self.file_list_load_button.grid(row=2, column=0)
+        self.file_list_load_button.grid(row=2, column=1)
 
 
 
@@ -72,7 +74,7 @@ class MainWindow:
                                          text="Select",
                                          command=self.select_files)
 
-        self.file_select_button.grid(row=3, column=0)
+        self.file_select_button.grid(row=3, column=1)
 
 
 
@@ -80,56 +82,85 @@ class MainWindow:
                                              text="Clear All",
                                              command=self.directory_clear)
 
-        self.file_list_clear_button.grid(row=5, column=0)
+        self.file_list_clear_button.grid(row=5, column=1)
 
 
         self.file_selected_clear_button = Button(self.main_frame,
                                                  text="Clear Selected",
                                                  command=self.clear_selected)
 
-        self.file_selected_clear_button.grid(row=4, column=0)
+        self.file_selected_clear_button.grid(row=4, column=1)
 
 
         self.files_selected_label = Label(self.main_frame, text="files selected", fg="green")
 
 
+        # All the file extension variables and GUI elements
+        self.file_extension = None
+
+        self.file_extension_box = Entry(self.main_frame, width=12)
+        self.file_extension_box.grid(row=3, column=0, rowspan=1)
+
+        self.file_extension_label = Label(self.main_frame, text="file extension")
+        self.file_extension_label.grid(row=2, column=0, rowspan=1)
+
+
+        self.filename_contains = None
+        self.filename_contains_box = Entry(self.main_frame, width=20)
+        self.filename_contains_box.grid(row=5, column=0)
+
+        self.filename_contains_label = Label(self.main_frame, text="filename contains")
+        self.filename_contains_label.grid(row=4, column=0)
+
+        # Word list variables and GUI elements
         self.wordlist_label = Label(self.main_frame, text="Word List")
-        self.wordlist_label.grid(row=0, column=1)
+        self.wordlist_label.grid(row=0, column=2)
 
         self.wordlist_box = Listbox(self.main_frame,
                                     width=22,
                                     height=20)
 
-        self.wordlist_box.grid(row=1, column=1)
+        self.wordlist_box.grid(row=1, column=2)
 
 
         self.load_wordlist_button = Button(self.main_frame,
                                            text="Load Word List",
                                            command=self.load_wordlist)
 
-        self.load_wordlist_button.grid(row=2, column=1)
+        self.load_wordlist_button.grid(row=2, column=2)
 
 
         self.clear_wordlist_button = Button(self.main_frame,
                                             text="Clear",
                                             command=self.clear_wordlist)
 
-        self.clear_wordlist_button.grid(row=3, column=1)
+        self.clear_wordlist_button.grid(row=3, column=2)
 
 
-
+        # Final export button
         self.export_csv = Button(self.main_frame, text="Export", command=self.export_csv)
-        self.export_csv.grid(row=2, column=3, columnspan=2)
+        self.export_csv.grid(row=2, column=4, columnspan=2)
 
     def directory_load(self):
 
         self.directory_clear()
 
+        # get the extension and filename substring for searching/filtering
+        self.file_extension = self.file_extension_box.get().strip()
+        self.filename_contains = self.filename_contains_box.get()
+
+        print "extension: " + str(self.file_extension) + "######"
+
         self.csv_directory = tkFileDialog.askdirectory()
 
         for subdir, dirs, files in os.walk(self.csv_directory):
             for file in files:
-                self.all_csv_files.append(file)
+
+                if file.endswith(self.file_extension):
+                    if not self.filename_contains_box.get(): # check if filename_contains is empty
+                        self.all_csv_files.append(file)
+                    elif file.find(self.filename_contains) is not -1:
+                        self.all_csv_files.append(file)
                 #print os.path.join(subdir, file)
                 print self.all_csv_files
 
@@ -140,6 +171,7 @@ class MainWindow:
 
         del self.all_csv_files[:]
         del self.selected_csv_files[:]
+        del self.file_extension
 
         self.file_listbox.delete(0, END)
 
@@ -155,7 +187,7 @@ class MainWindow:
                 self.selected_csv_files.append(self.all_csv_files[int(selection)])
 
         if len(self.selected_csv_files) > 0:
-            self.files_selected_label.grid(row=6, column=0)
+            self.files_selected_label.grid(row=6, column=1)
         print self.selected_csv_files
 
     def clear_selected(self):
