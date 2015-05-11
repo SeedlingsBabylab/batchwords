@@ -151,8 +151,8 @@ class MainWindow:
 
         for selection in self.file_listbox.curselection():
             print self.all_csv_files[int(selection)]
-            if self.all_csv_files[selection] not in self.selected_csv_files:
-                self.selected_csv_files.append(self.all_csv_files[selection])
+            if self.all_csv_files[int(selection)] not in self.selected_csv_files:
+                self.selected_csv_files.append(self.all_csv_files[int(selection)])
 
         if len(self.selected_csv_files) > 0:
             self.files_selected_label.grid(row=6, column=0)
