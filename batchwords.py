@@ -150,7 +150,7 @@ class MainWindow:
         print self.file_listbox.curselection()
 
         for selection in self.file_listbox.curselection():
-            print self.all_csv_files[selection]
+            print self.all_csv_files[int(selection)]
             if self.all_csv_files[selection] not in self.selected_csv_files:
                 self.selected_csv_files.append(self.all_csv_files[selection])
 
