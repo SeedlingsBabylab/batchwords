@@ -1,4 +1,6 @@
 from Tkinter import *
+
+import ttk
 import tkFileDialog
 import os
 import csv
@@ -18,7 +20,7 @@ class MainWindow:
 
         self.root = master
         self.root.title("Batch Words")
-        self.root.geometry("800x500")
+        self.root.geometry("900x500")
         self.main_frame = Frame(root)
         self.main_frame.pack()
 
@@ -52,7 +54,7 @@ class MainWindow:
 
 
         self.file_listbox = Listbox(self.main_frame,
-                                    width=34,
+                                    width=53,
                                     height=20,
                                     selectmode=MULTIPLE)
 
@@ -141,6 +143,10 @@ class MainWindow:
         self.export_csv = Button(self.main_frame, text="Export", command=self.export_csv)
         self.export_csv.grid(row=2, column=4, columnspan=2)
 
+
+        #self.file_tree = ttk.Treeview(self.main_frame)
+        #self.file_tree.grid(row=1, column=3, padx=10)
+
     def directory_load(self):
 
         self.directory_clear()
@@ -153,16 +159,47 @@ class MainWindow:
 
         self.csv_directory = tkFileDialog.askdirectory()
 
-        for subdir, dirs, files in os.walk(self.csv_directory):
+        all_files = []
+
+        for dir, subdirs, files in os.walk(self.csv_directory):
+            print "dir: " + str(dir) + "\nsubdirs: " + str(subdirs) + "\nfiles: " + str(files) + "\n\n"
+            print
             for file in files:
 
-                if file.endswith(self.file_extension):
-                    if not self.filename_contains_box.get(): # check if filename_contains is empty
-                        self.all_csv_files.append(file)
-                    elif file.find(self.filename_contains) is not -1:
-                        self.all_csv_files.append(file)
+                all_files.append(os.path.join(dir, file))
+                # if file.endswith(self.file_extension):
+                #     if not self.filename_contains_box.get(): # check if filename_contains is empty
+                #         self.all_csv_files.append(file)
+                #     elif file.find(self.filename_contains) is not -1:
+                #         self.all_csv_files.append(file)
                 #print os.path.join(subdir, file)
-                print self.all_csv_files
+                #print self.all_csv_files
+            print "results: " + str(all_files)
+            print "common prefix: " + os.path.commonprefix(all_files)
+
+        self.csv_directory = os.path.commonprefix(all_files)
+        prefix_len = len(self.csv_directory)
+
+        for i, file in enumerate(all_files):
+            print "filename: " + file[prefix_len:]
+            if file.endswith(self.file_extension):
+                if not self.filename_contains_box.get(): # check if filename_contains is empty
+                    self.all_csv_files.append(file[prefix_len:])
+                elif file[prefix_len:].find(self.filename_contains) is not -1:
+                    self.all_csv_files.append(file[prefix_len:])
+            # if file.endswith(self.file_extension):
+            #     if not self.filename_contains_box.get():    # if extension is not provided, continue
+            #         continue
+            # else:
+            #     del all_files[i]
+
+
+        print "results after filtering: " + str(all_files)
+
+
+
+
+
 
         for i, file in enumerate(self.all_csv_files):
             self.file_listbox.insert(i, file)
@@ -171,7 +208,8 @@ class MainWindow:
 
         del self.all_csv_files[:]
         del self.selected_csv_files[:]
-        del self.file_extension
+        if self.file_extension is not None:
+            del self.file_extension
 
         self.file_listbox.delete(0, END)
 
@@ -257,7 +295,8 @@ class MainWindow:
                                          entry[3],          # object_present
                                          entry[4],          # speaker
                                          entry[6],          # basic_level
-                                         matches[0][1]])    # audio_video
+                                         matches[0][1],     # audio_video
+                                         matches[0][2]])    # rel_filename
 
                     else:   # file was video
 
@@ -269,18 +308,20 @@ class MainWindow:
                                          entry[5],          # object_present
                                          entry[6],          # speaker
                                          entry[7],          # basic level
-                                         matches[0][1]])    # audio_video
+                                         matches[0][1],     # audio_video
+                                         matches[0][2]])    # filename
 
-    def pull_out_matches(self, scan_file, wordlist):
+
+    def pull_out_matches(self, file, wordlist):
         """
 
-        :param scan_file: file to be scanned
+        :param scan_file: file to be scanned (relative path from self.csv_directory)
         :param word: word to be pulled out
         :return: list of strings representing entries from the scanned file
         """
 
         matches = []
-
+        scan_file = os.path.split(file)[1]
         file_type = scan_file.find("audio")
 
         if file_type is -1:
@@ -288,9 +329,9 @@ class MainWindow:
         else:
             file_type = "audio"
 
-        meta_info = (scan_file[0:5], file_type)  #(child_visit, audio/video)
+        meta_info = (scan_file[0:5], file_type, scan_file)  #(child_visit, audio/video, rel_filename)
 
-        with open(os.path.join(self.csv_directory, scan_file), "rU") as file:
+        with open(os.path.join(self.csv_directory, file), "rU") as file:
             reader = csv.reader(file)
 
             for line in reader:
