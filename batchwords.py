@@ -209,7 +209,7 @@ class MainWindow:
 
         del self.all_csv_files[:]
         del self.selected_csv_files[:]
-        #if self.file_extension is not None:
+
         self.file_extension = None
 
         self.file_listbox.delete(0, END)
@@ -276,7 +276,8 @@ class MainWindow:
                             "object_present",
                             "speaker",
                             "basic_level",
-                            "audio_video"])
+                            "audio_video",
+                            "filename"])
 
             print results
 
