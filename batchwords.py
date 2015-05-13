@@ -209,8 +209,8 @@ class MainWindow:
 
         del self.all_csv_files[:]
         del self.selected_csv_files[:]
-        if self.file_extension is not None:
-            del self.file_extension
+        #if self.file_extension is not None:
+        self.file_extension = None
 
         self.file_listbox.delete(0, END)
 
