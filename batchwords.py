@@ -202,7 +202,8 @@ class MainWindow:
 
 
         for i, file in enumerate(self.all_csv_files):
-            self.file_listbox.insert(i, file)
+            filename = os.path.split(file)[1]
+            self.file_listbox.insert(i, filename)
 
     def directory_clear(self):
 
