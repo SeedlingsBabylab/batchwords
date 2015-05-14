@@ -26,6 +26,8 @@ class MainWindow:
 
         self.av_int_var = IntVar()
 
+        self.no_list = False
+
         self.video_selected_button = Radiobutton(self.main_frame,
                                                  text="video",
                                                  variable=self.av_int_var,
@@ -139,6 +141,17 @@ class MainWindow:
         self.clear_wordlist_button.grid(row=3, column=2)
 
 
+        self.no_wordlist_button = Button(self.main_frame,
+                                         text="No List",
+                                         command=self.set_no_list)
+
+        self.no_wordlist_button.grid(row=5, column=2)
+
+
+        self.no_wordlist_label = Label(self.main_frame,
+                                       text="Pulling Out All Words",
+                                       fg="red")
+
         # Final export button
         self.export_csv = Button(self.main_frame, text="Export", command=self.export_csv)
         self.export_csv.grid(row=2, column=4, columnspan=2)
@@ -237,6 +250,8 @@ class MainWindow:
 
     def load_wordlist(self):
 
+        self.no_wordlist_label.grid_remove()
+        self.no_list = False
         self.word_list_file = tkFileDialog.askopenfilename()
 
         with open(self.word_list_file, "rU") as file:
@@ -253,14 +268,21 @@ class MainWindow:
         self.word_list_file = None
         self.word_list = []
         self.wordlist_box.delete(0, END)
+        self.no_wordlist_label.grid_remove()
+
+    def set_no_list(self):
+
+        self.no_list = True
+        self.no_wordlist_label.grid(row=4, column=2)
+
 
     def export_csv(self):
-
-        if (not self.word_list) or\
-                (not self.word_list_file) or\
-                (not self.all_csv_files) or\
-                (not self.csv_directory):
-            raise Exception("you need to load all the files first")
+        #
+        # if (not self.word_list) or\
+        #         (not self.word_list_file) or\
+        #         (not self.all_csv_files) or\
+        #         (not self.csv_directory):
+        #     raise Exception("you need to load all the files first")
 
         results = []
         for file in self.selected_csv_files:
@@ -335,14 +357,20 @@ class MainWindow:
 
         with open(os.path.join(self.csv_directory, file), "rU") as file:
             reader = csv.reader(file)
-
+            reader.next()
             for line in reader:
 
                 if file_type is "audio":
-                    if line[6].strip() in wordlist:
+                    if self.no_list is True:
+                        matches.append(line)
+                        continue
+                    elif line[6].strip() in wordlist:
                         matches.append(line)
                 elif file_type is "video":
-                    if line[7].strip() in wordlist:
+                    if self.no_list is True:
+                        matches.append(line)
+                        continue
+                    elif line[7].strip() in wordlist:
                         matches.append(line)
 
         print "meta_info: " + str(meta_info)
