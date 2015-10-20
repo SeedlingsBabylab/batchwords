@@ -1,4 +1,4 @@
-# batchwords
+# batchexport
 
 This program operates on batches of audio/video coding csv files, pulling out matches based on a word list provided by the user. The matches can then be exported to a new csv file. The new csv entries will include:
 
